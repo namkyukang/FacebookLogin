@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
             user.setAge(Integer.parseInt(input_age.getText().toString()));
             user.setGender(cbFemale.isChecked() ? "female" : "male");
             reset_signUp_editText();
-
+            status = SIGNIN;
             //TODO : 서버에 사용자 정보 전송.;
 
 
@@ -138,9 +138,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        //super.onBackPressed();
         if(status == SIGNIN){
-            finish();
+            super.onBackPressed();
         }else if(status == SIGNUP){
             linearSignIn.setVisibility(View.VISIBLE);
             linearSignUp.setVisibility(View.GONE);
