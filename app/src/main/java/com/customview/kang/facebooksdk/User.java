@@ -6,11 +6,20 @@ import java.io.Serializable;
  * Created by kang on 2017-03-28.
  */
 
-public class FaceBookUser implements Serializable{
+public class User implements Serializable{
     String email;
+    String password;
     String name;
     String gender;
     int age;
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     public String getEmail() {
         return email;

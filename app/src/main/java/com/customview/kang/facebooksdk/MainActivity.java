@@ -5,12 +5,15 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.hardware.camera2.params.Face;
-import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.View;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -19,10 +22,8 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
-import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
@@ -33,23 +34,108 @@ import org.json.JSONObject;
 public class MainActivity extends AppCompatActivity {
     CallbackManager callbackManager;
     public static String TAG = "FaceBookLogin";
+    final private static boolean SIGNUP = true;
+    final private static boolean SIGNIN = false;
+    boolean status;
     AccessToken accessToken;
     Intent intent;
-    FaceBookUser faceBookUser;
+    User user;
+    LinearLayout linearSignIn, linearSignUp;
+    EditText input_email_Up,input_password_Up,input_Name,input_age,input_email_In,input_password_In;
+    CheckBox cbFemale,cbmale;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        faceBookUser = new FaceBookUser();
-        setLoginFaceBook();
+        viewInit();
+        status = SIGNIN;
 
 
     }
+    public void viewInit(){
+        linearSignIn = (LinearLayout)findViewById(R.id.linearSignIn);
+        linearSignUp = (LinearLayout)findViewById(R.id.linearSignUp);
+        input_email_Up = (EditText)findViewById(R.id.input_email_Up);
+        input_password_Up = (EditText)findViewById(R.id.input_password_Up);
+        input_Name = (EditText)findViewById(R.id.input_Name);
+        input_age=(EditText)findViewById(R.id.input_age);
+        input_email_In = (EditText)findViewById(R.id.input_email_In);
+        input_password_In = (EditText)findViewById(R.id.input_password_In);
+        cbFemale = (CheckBox) findViewById(R.id.cbFemale);
+        cbmale = (CheckBox) findViewById(R.id.cbMale);
+    }
+    public void click_signUp(View view){
+        try{
+            user.setEmail(input_email_Up.getText().toString());
+            user.setPassword(input_password_Up.getText().toString());
+            user.setName(input_Name.getText().toString());
+            user.setAge(Integer.parseInt(input_age.getText().toString()));
+            user.setGender(cbFemale.isChecked() ? "female" : "male");
+            reset_signUp_editText();
+
+            //TODO : 서버에 사용자 정보 전송.;
+
+
+            linearSignUp.setVisibility(View.GONE);
+            linearSignIn.setVisibility(View.VISIBLE);
+        }catch(Exception e){
+            Toast.makeText(this, "모든 정보를 기입해 주시기 바랍니다.", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+    public void reset_signUp_editText(){
+        input_email_Up.setText("");
+        input_password_Up.setText("");
+        input_Name.setText("");
+        input_age.setText("");
+        cbFemale.setChecked(false);
+        cbmale.setChecked(false);
+
+    }
+    public void click_signUp_text(View view){
+        linearSignIn.setVisibility(View.GONE);
+        linearSignUp.setVisibility(View.VISIBLE);
+        status = SIGNUP;
+    }
+    public void click_singIn(View view){
+        //TODO : 서버에 사용자 조회, password 암호화
+
+        if(((EditText) findViewById(R.id.input_email_In)).getText().toString() == "master@master.com"/*user.getEmail*/ &&
+                        ((EditText) findViewById(R.id.input_password_In)).getText().toString() == "master"/*user.getPassword*/) {
+            //TODO : 사용자 있으면 Sign In
+            intent = new Intent(MainActivity.this, CmpTestActivity.class);
+            intent.putExtra("user", user);
+            //finish();
+            startActivity(intent);
+        }else{
+            //TODO : 사용자 없으면 SetError
+            Toast.makeText(this, "입력하신 E-mail 혹은 비밀번호가 옳지 않습니다.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void click_facebook_signUp(View view){
+        user = new User();
+        setLoginFaceBook();
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         //super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+        if(status == SIGNIN){
+            finish();
+        }else if(status == SIGNUP){
+            linearSignIn.setVisibility(View.VISIBLE);
+            linearSignUp.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -66,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
     }
     private void setLoginFaceBook(){
         callbackManager = CallbackManager.Factory.create();
-        LoginButton loginButton = (LoginButton)findViewById(R.id.facebook_login_button);
+        LoginButton loginButton = (LoginButton)findViewById(R.id.facebook_login_button_In);
         loginButton.setReadPermissions("email");
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
 
@@ -96,12 +182,12 @@ public class MainActivity extends AppCompatActivity {
             public void onCompleted(JSONObject object, GraphResponse response) {
                 try {
 
-                    faceBookUser.setEmail(object.getString("email"));
-                    faceBookUser.setName(object.getString("name") );
-                    faceBookUser.setGender(object.getString("gender"));
+                    user.setEmail(object.getString("email"));
+                    user.setName(object.getString("name") );
+                    user.setGender(object.getString("gender"));
 
                     intent = new Intent(MainActivity.this, CmpTestActivity.class);
-                    intent.putExtra("user", faceBookUser);
+                    intent.putExtra("user", user);
                     //finish();
                     startActivity(intent);
                 } catch (JSONException e) {e.printStackTrace();}
