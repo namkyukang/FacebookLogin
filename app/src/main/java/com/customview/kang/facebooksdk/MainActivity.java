@@ -97,16 +97,25 @@ public class MainActivity extends AppCompatActivity {
     public void click_signUp_text(View view){
         linearSignIn.setVisibility(View.GONE);
         linearSignUp.setVisibility(View.VISIBLE);
+        input_email_In.setText("");
+        input_password_In.setText("");
         status = SIGNUP;
     }
     public void click_singIn(View view){
         //TODO : 서버에 사용자 조회, password 암호화
 
-        if(((EditText) findViewById(R.id.input_email_In)).getText().toString() == "master@master.com"/*user.getEmail*/ &&
-                        ((EditText) findViewById(R.id.input_password_In)).getText().toString() == "master"/*user.getPassword*/) {
+        if( input_email_In.getText().toString().equals("master@master.com")/*user.getEmail*/ &&
+                        input_password_In.getText().toString().equals("master")/*user.getPassword*/) {
             //TODO : 사용자 있으면 Sign In
+            User singIn_user = new User();
+            singIn_user.setGender("female");
+            singIn_user.setPassword("master");
+            singIn_user.setAge(28);
+            singIn_user.setName("Master");
+            singIn_user.setEmail("master@master.com");
+
             intent = new Intent(MainActivity.this, CmpTestActivity.class);
-            intent.putExtra("user", user);
+            intent.putExtra("user", singIn_user);
             //finish();
             startActivity(intent);
         }else{
