@@ -72,6 +72,10 @@ public class MainActivity extends AppCompatActivity {
     }
     public void click_signUp(View view){
         try{
+            if(!validate_Up()){
+                return;
+            }
+            user = new User();
             user.setEmail(input_email_Up.getText().toString());
             user.setPassword(input_password_Up.getText().toString());
             user.setName(input_Name.getText().toString());
@@ -79,11 +83,8 @@ public class MainActivity extends AppCompatActivity {
             user.setGender(cbFemale.isChecked() ? "female" : "male");
             reset_signUp_editText();
             status = SIGNIN;
-            //TODO : 서버에 사용자 정보 전송.;
+            signUp_Success();
 
-
-            linearSignUp.setVisibility(View.GONE);
-            linearSignIn.setVisibility(View.VISIBLE);
         }catch(Exception e){
             Toast.makeText(this, "모든 정보를 기입해 주시기 바랍니다.", Toast.LENGTH_SHORT).show();
         }
@@ -109,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this,
                 R.style.Theme_AppCompat_DayNight_Dialog_Alert);
         progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("로그인 중...");
+        progressDialog.setMessage("로그인 중 ...");
         progressDialog.getWindow().setGravity(Gravity.CENTER);
         progressDialog.show();
 
@@ -121,6 +122,27 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         //finish();
                         startActivity(intent);
+                        progressDialog.dismiss();
+                    }
+                }, 1500);
+    }
+    public void signUp_Success(){
+        final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this,
+                R.style.Theme_AppCompat_DayNight_Dialog_Alert);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setMessage("가입 중...");
+        progressDialog.getWindow().setGravity(Gravity.CENTER);
+        progressDialog.show();
+
+
+        // TODO: Implement your own authentication logic here.
+
+        new android.os.Handler().postDelayed(
+                new Runnable() {
+                    public void run() {
+                        //TODO : 서버에 사용자 정보 전송.
+                        linearSignUp.setVisibility(View.GONE);
+                        linearSignIn.setVisibility(View.VISIBLE);
                         progressDialog.dismiss();
                     }
                 }, 1500);
@@ -289,20 +311,23 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (password_confirm.isEmpty()) {
-            input_password_Up.setError("비밀번호를 확인해 주세요");
+            confirm_password_Up.setError("비밀번호를 확인해 주세요");
             valid = false;
         }else if(!password_confirm.equals(password)){
-            input_password_Up.setError("비밀번호가 일치하지 않습니다.");
+            confirm_password_Up.setError("비밀번호가 일치하지 않습니다.");
             valid = false;
         } else {
-            input_password_Up.setError(null);
+            confirm_password_Up.setError(null);
         }
 
         if (age.isEmpty() || Integer.parseInt(age) > 100  || Integer.parseInt(age) < 1) {
-            input_password_Up.setError("100세가 넘는다는게 말이 안됩니다.");
+            input_age.setError("100세가 넘는다는게 말이 안됩니다.");
             valid = false;
         } else {
-            input_password_Up.setError(null);
+            input_age.setError(null);
+        }
+        if(!cbmale.isChecked() && !cbFemale.isChecked()){
+            Toast.makeText(this, "성별을 체크해주세요", Toast.LENGTH_SHORT).show();
         }
 
         return valid;
