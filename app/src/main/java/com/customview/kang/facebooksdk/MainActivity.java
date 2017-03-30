@@ -1,14 +1,17 @@
 package com.customview.kang.facebooksdk;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -41,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     Intent intent;
     User user;
     LinearLayout linearSignIn, linearSignUp;
-    EditText input_email_Up,input_password_Up,input_Name,input_age,input_email_In,input_password_In;
+    EditText input_email_Up,input_password_Up,confirm_password_Up,input_Name,input_age,input_email_In,input_password_In;
     CheckBox cbFemale,cbmale;
 
 
@@ -59,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
         linearSignUp = (LinearLayout)findViewById(R.id.linearSignUp);
         input_email_Up = (EditText)findViewById(R.id.input_email_Up);
         input_password_Up = (EditText)findViewById(R.id.input_password_Up);
+        confirm_password_Up = (EditText)findViewById(R.id.confirm_password_Up);
         input_Name = (EditText)findViewById(R.id.input_Name);
         input_age=(EditText)findViewById(R.id.input_age);
         input_email_In = (EditText)findViewById(R.id.input_email_In);
@@ -101,12 +105,35 @@ public class MainActivity extends AppCompatActivity {
         input_password_In.setText("");
         status = SIGNUP;
     }
+    public void login_Success(){
+        final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this,
+                R.style.Theme_AppCompat_DayNight_Dialog_Alert);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setMessage("로그인 중...");
+        progressDialog.getWindow().setGravity(Gravity.CENTER);
+        progressDialog.show();
+
+
+        // TODO: Implement your own authentication logic here.
+
+        new android.os.Handler().postDelayed(
+                new Runnable() {
+                    public void run() {
+                        //finish();
+                        startActivity(intent);
+                        progressDialog.dismiss();
+                    }
+                }, 1500);
+    }
     public void click_singIn(View view){
         //TODO : 서버에 사용자 조회, password 암호화
-
+        if(!validate_in()){
+            Toast.makeText(this, "Login 실패", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if( input_email_In.getText().toString().equals("master@master.com")/*user.getEmail*/ &&
                         input_password_In.getText().toString().equals("master")/*user.getPassword*/) {
-            //TODO : 사용자 있으면 Sign In
+            //TODO : 사용자 있으면 Sign In - Login success
             User singIn_user = new User();
             singIn_user.setGender("female");
             singIn_user.setPassword("master");
@@ -116,10 +143,11 @@ public class MainActivity extends AppCompatActivity {
 
             intent = new Intent(MainActivity.this, CmpTestActivity.class);
             intent.putExtra("user", singIn_user);
-            //finish();
-            startActivity(intent);
+            login_Success();
+
+
         }else{
-            //TODO : 사용자 없으면 SetError
+            //TODO : 사용자 없으면 SetError - Login Fail
             Toast.makeText(this, "입력하신 E-mail 혹은 비밀번호가 옳지 않습니다.", Toast.LENGTH_SHORT).show();
         }
     }
@@ -208,7 +236,77 @@ public class MainActivity extends AppCompatActivity {
         request.executeAsync();
 
     }
+    public boolean validate_in(){
+        boolean valid = true;
 
+        String email = input_email_In.getText().toString();
+        String password = input_password_In.getText().toString();
+
+        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            input_email_In.setError("E-mail 형식으로 입력해주세요");
+            valid = false;
+        } else {
+            input_password_In.setError(null);
+        }
+
+        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
+            input_password_In.setError("비밀번호는 4자 이상 10자 이하입니다.");
+            valid = false;
+        } else {
+            input_password_In.setError(null);
+        }
+
+        return valid;
+    }
+    public boolean validate_Up(){
+        boolean valid = true;
+
+        String name = input_Name.getText().toString();
+        String email = input_email_Up.getText().toString();
+        String password = input_password_Up.getText().toString();
+        String age = input_age.getText().toString();
+        String password_confirm = confirm_password_Up.getText().toString();
+
+        if (name.isEmpty() || name.length() < 2) {
+            input_Name.setError("이름이 최소 2자는 되야죠");
+            valid = false;
+        } else {
+            input_Name.setError(null);
+        }
+
+        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            input_email_Up.setError("E-mail 형식으로 입력해주세요");
+            valid = false;
+        } else {
+            input_email_Up.setError(null);
+        }
+
+        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
+            input_password_Up.setError("비밀번호는 4자 이상 10자 이하입니다.");
+            valid = false;
+        } else {
+            input_password_Up.setError(null);
+        }
+
+        if (password_confirm.isEmpty()) {
+            input_password_Up.setError("비밀번호를 확인해 주세요");
+            valid = false;
+        }else if(!password_confirm.equals(password)){
+            input_password_Up.setError("비밀번호가 일치하지 않습니다.");
+            valid = false;
+        } else {
+            input_password_Up.setError(null);
+        }
+
+        if (age.isEmpty() || Integer.parseInt(age) > 100  || Integer.parseInt(age) < 1) {
+            input_password_Up.setError("100세가 넘는다는게 말이 안됩니다.");
+            valid = false;
+        } else {
+            input_password_Up.setError(null);
+        }
+
+        return valid;
+    }
     public static final String getKeyHash(Context context) {
         try {
             PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(),
